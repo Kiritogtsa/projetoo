@@ -1,0 +1,4 @@
+CREATE TABLE `loja`.`usuario` (`id` INT NOT NULL AUTO_INCREMENT , `nome` VARCHAR(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `email` VARCHAR(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `senha` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , PRIMARY KEY (`id`), UNIQUE (`nome`), UNIQUE (`email`)) ENGINE = InnoDB;
+
+
+CREATE TABLE `loja`.`produtos` (`id` INT NOT NULL AUTO_INCREMENT , `nome` VARCHAR(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `quant` INT NULL , `preco` DOUBLE NOT NULL , PRIMARY KEY (`id`), UNIQUE (`nome`)) ENGINE = InnoDB;
