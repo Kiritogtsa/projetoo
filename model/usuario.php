@@ -1,51 +1,55 @@
 <?php
 class Usuario{
-    private $id;
-    private $nome;
-    private $email;
-    private $senha;
-    private $is_vendedor;
-    private $vendedor_id;
-    private $saldo;
-    public function _construct($id=null,$nome,$email,$senha=null,$is_vendedor=0,$vendedor_id=null) {
-        
+    protected $user_id;
+    protected $nome;
+    protected $email;
+    protected $senha;
+    protected $is_vendedor;
+    protected $vendedor_id;
+    protected $saldo;
+    public function _construct($user_id=null,$nome,$email,$senha=null,$is_vendedor=0,$vendedor_id=null) {
+        if($nome=="" && $email== "" ){
+            throw new Exception("nao foi passado um erro");
+        }
+        $this->nome=$nome;
+        $this->email=$email;
+        if(!$senha== ""){
+            $this->senha=$senha;
+        }
+        if(!$is_vendedor==null || $is_vendedor!=1){
+          $this->is_vendedor=0;
+        }else{
+            $this->is_vendedor=$is_vendedor;
+        }
+        $this->vendedor_id=$vendedor_id;
     }
     public function getId() {
-        return $this->id;
+        return $this->user_id;
     }
-
-    public function setId($id) {
-        $this->id = $id;
+    public function setId($user_id) {
+        $this->user_id = $user_id;
     }
-
     public function getNome() {
         return $this->nome;
     }
-
     public function setNome($nome) {
         $this->nome = $nome;
     }
-
     public function getEmail() {
         return $this->email;
     }
-
     public function setEmail($email) {
         $this->email = $email;
     }
-
     public function getSenha() {
         return $this->senha;
     }
-
     public function setSenha($senha) {
         $this->senha = $senha;
     }
-
     public function getIsVendedor() {
         return $this->is_vendedor;
     }
-
     public function setIsVendedor($is_vendedor) {
         $this->is_vendedor = $is_vendedor;
     }
@@ -60,7 +64,6 @@ class Usuario{
     public function getSaldo() {
         return $this->saldo;
     }
-
     public function setSaldo($saldo) {
         $this->saldo = $saldo;
     }
@@ -82,7 +85,8 @@ class UsuarioDAO {
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':nome', $usuario->getNome());
         $stmt->bindParam(':email', $usuario->getEmail());
-        $stmt->bindParam(':senha', $usuario->getSenha());
+        $senhaHash = password_hash($usuario->getSenha(), PASSWORD_DEFAULT);
+        $stmt->bindParam(':senha', $senhaHash);
         $stmt->bindParam(':is_vendedor', $usuario->getIsVendedor());
         $stmt->bindParam(':vendedor_id', $usuario->getVendedorId());
         $stmt->execute();
@@ -100,10 +104,10 @@ class UsuarioDAO {
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
-    public function buscarPorId($id) {
-        $sql = "SELECT * FROM usuarios WHERE id = :id";
+    public function buscarPorEmail($email) {
+        $sql = "SELECT * FROM usuarios WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':email', $email);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -115,7 +119,30 @@ class UsuarioDAO {
         return $stmt->rowCount() > 0;
     }
 }
+class vendedor{
+    private Usuario $usuario;
+    private $vede_id;
+    private $produtos;
+    public function __construct(Usuario $usuario){
+        if($usuario==null){
+            throw new Exception('nao tem um usuario');
+        }
+        $this->usuario = $usuario;
+        $this->vede_id = $this->usuario->getVendedorId();
+    }
+    public function getID() {
+        return $this->vede_id;
+    }
 
-class vendedor extends Usuario{
-    
+    public function getProdutos() {
+        return $this->produtos;
+    }
+
+    public function setNome($produtos) {
+        $this->produtos = $produtos;
+    }
+}
+
+class vendedorDAO{
+
 }
