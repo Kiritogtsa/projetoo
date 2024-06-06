@@ -46,7 +46,7 @@ CREATE TABLE `usuario` (
   `nome` varchar(15) NOT NULL,
   `email` varchar(25) NOT NULL,
   `senha` text NOT NULL,
-  `vendedor` tinyint(1) NOT NULL,
+  `vendedor` BOOLEAN NOT NULL,
   `vendedor_id` int(11) DEFAULT NULL,
   `saldo` double NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

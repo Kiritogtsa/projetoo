@@ -1,11 +1,8 @@
 <?php
 session_start();
-
-// Verifica se o usuário está autenticado
-if(!isset($_SESSION["usuario"]) || !isset($_SESSION["permicao"])) {
-    header("Location: ../controller/login.php");
-    exit;
-}
+require_once("../model/usuario.php");
+require_once("../model/produtos.php");
+require_once("../controller/verifylogin.php");
 
 // Recupera os dados do usuário da sessão
 $usuario = unserialize($_SESSION["usuario"]);
@@ -14,10 +11,14 @@ $permicao = $_SESSION["permicao"];
 // Mensagem de boas-vindas personalizada
 $mensagem = "Bem-vindo, ";
 if($permicao == "vedendor"){
-    $mensagem .= "Vendedor " . $usuario->getNome() . "!";
+    $mensagem .= "Vendedor " . $usuario->getUsuario()->getNome() . "!";
 } else {
     $mensagem .= "Usuário " . $usuario->getNome() . "!";
 }
+
+// Recupera os produtos do banco de dados
+$produtoDAO = new ProdutoDAO();
+$produtos = $produtoDAO->getAll();
 ?>
 
 <html lang="pt-BR">
@@ -31,12 +32,18 @@ if($permicao == "vedendor"){
     <h1>Bem-vindo</h1>
     <h3><?php echo $mensagem; ?></h3>
     <p>Abaixo estão alguns links úteis:</p>
-    <div class="link">
-        <?php if($permicao == "vedendor"){ ?>
-        <a href="./adicionar.php">Adicionar um usuário</a>
-        <?php } ?>
-        <a href="../controller/logout.php">Sair</a>
-        <a href="./visualizar.php">Listagem</a>
-    </div>
+
+    <h2>Produtos Disponíveis:</h2>
+    <ul>
+        <?php foreach ($produtos as $produto): ?>
+            <li><?php echo $produto['nome']; ?> - R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?></li>
+        <?php endforeach; ?>
+    </ul>
+    <?php if($permicao=="vedendor"){
+        ?> 
+            <a href="./casdratarproduto.php">criar produtos</a>
+        <?php
+    }
+    ?>
 </body>
 </html>

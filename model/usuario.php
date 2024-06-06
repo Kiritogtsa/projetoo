@@ -7,14 +7,17 @@ class Usuario{
     protected $is_vendedor;
     protected $vendedor_id;
     protected $saldo;
-    public function __construct($nome,$email,$senha,$is_vendedor,$vendedor_id=null) {
-        if($nome=="" && $email== "" && $senha==""){
+    public function __construct($nome,$email,$senha,$is_vendedor,$vendedor_id=null,$id=null) {
+        if($nome=="" || $email== "" || $senha==""){
             throw new Exception("nao foi passado um erro");
         }
         $this->nome=$nome;
         $this->email=$email;
         if(!$senha== ""){
             $this->senha=$senha;
+        }
+        if ($id !== null) {
+            $this->user_id = $id;
         }
         $this->is_vendedor=$is_vendedor;
         $this->vendedor_id=$vendedor_id;
@@ -70,54 +73,47 @@ class UsuarioDAO {
         try {
             require_once('bd.php');
             $this->pdo = $pdo;
-            var_dump($pdo); // Debug da variável $pdo
         } catch (\Throwable $th) {
             $session["messagem"]  = $th->getMessage();
         }
     }
-    public function persistir(Usuario $usuario){
+    public function persistir(Usuario $usuario) {
         if ($usuario->getId() !== null) {
             return $this->atualizar($usuario);
         } else {
-           return $this->criar($usuario);
+            return $this->criar($usuario);
         }
     }
+
     private function criar(Usuario $usuario) {
-        $sql = "INSERT INTO usuario (nome, email, senha, is_vendedor, vendedor_id) VALUES (:nome, :email, :senha, :is_vendedor, :vendedor_id)";
+        $sql = "INSERT INTO usuario (nome, email, senha, vendedor, vendedor_id) VALUES (:nome, :email, :senha, :is_vendedor, :vendedor_id)";
         $stmt = $this->pdo->prepare($sql);
-        $nome = $usuario->getNome();
-        $stmt->bindParam(':nome', $nome);
-        $email = $usuario->getEmail();
-        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':nome', $usuario->getNome());
+        $stmt->bindParam(':email', $usuario->getEmail());
         $senhaHash = password_hash($usuario->getSenha(), PASSWORD_DEFAULT);
         $stmt->bindParam(':senha', $senhaHash);
-        $IsVendedor = $usuario->getIsVendedor();
-        $stmt->bindParam(':is_vendedor', $IsVendedor());
-        $idve= $usuario->getVendedorId();
-        $stmt->bindParam(':vendedor_id', $idve);
+        $stmt->bindParam(':is_vendedor', $usuario->getIsVendedor());
+        $stmt->bindParam(':vendedor_id', $usuario->getVendedorId());
         $stmt->execute();
 
         $usuarioId = $this->pdo->lastInsertId();
         $usuario->setId($usuarioId);
-        if ($usuario->getIsVendedor() == 1){
-            // Cria um registro na tabela vendedores
-            $vendedorId = $this->criarVendedor($usuarioId);
-            // Atualiza o vendedor_id na tabela usuarios
-            $this->atualizarVendedorId($usuarioId, $vendedorId);
 
+        if ($usuario->getIsVendedor() == 1) {
+            $vendedorId = $this->criarVendedor($usuarioId);
+            $this->atualizarVendedorId($usuarioId, $vendedorId);
             $usuario->setVendedorId($vendedorId);
         }
-        return $$usuario;
+        return $usuario;
     }
 
     private function criarVendedor($usuarioId) {
         $sql = "INSERT INTO vendedores (usuario_id, produtos) VALUES (:usuario_id, :produtos)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':usuario_id', $usuarioId);
-        $stmt->bindValue(':produtos', 0); // valor padrão para produtos
+        $stmt->bindValue(':produtos', 0);
         $stmt->execute();
-        
-        return $this->pdo->lastInsertId(); // Retorna o ID do vendedor inserido
+        return $this->pdo->lastInsertId();
     }
 
     private function atualizarVendedorId($usuarioId, $vendedorId) {
@@ -127,8 +123,9 @@ class UsuarioDAO {
         $stmt->bindParam(':usuario_id', $usuarioId);
         $stmt->execute();
     }
+
     private function atualizar(Usuario $usuario) {
-        $sql = "UPDATE usuario SET nome = :nome, email = :email, is_vendedor = :is_vendedor, vendedor_id = :vendedor_id WHERE id = :id";
+        $sql = "UPDATE usuario SET nome = :nome, email = :email, vendedor = :is_vendedor, vendedor_id = :vendedor_id WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':nome', $usuario->getNome());
         $stmt->bindParam(':email', $usuario->getEmail());
@@ -138,13 +135,16 @@ class UsuarioDAO {
         $stmt->execute();
         return $usuario;
     }
+
     public function buscarPorEmail($email) {
         $sql = "SELECT * FROM usuario WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':email', $email);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+        return new Usuario($dados["nome"],$dados["email"],$dados["senha"],$dados["vendedor"],$dados["vendedor_id"],$dados["id"]);
     }
+
     public function excluir($id) {
         $sql = "DELETE FROM usuario WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
@@ -193,7 +193,6 @@ class vendedorDAO{
         try {
             require_once('bd.php');
             $this->pdo = $pdo;
-            var_dump($pdo); // Debug da variável $pdo
         } catch (\Throwable $th) {
             $session["messagem"]  = $th->getMessage();
         }

@@ -61,7 +61,6 @@ class ProdutoDAO {
         try {
             require_once("bd.php");
             $this->pdo = $pdo;
-            var_dump($pdo); // Debug da variável $pdo
         } catch (\Throwable $th) {
             $session["messagem"]  = $th->getMessage();
         }
@@ -76,23 +75,23 @@ class ProdutoDAO {
     }
 
     private function criar(Produto $produto) {
-        $sql = "INSERT INTO produtos (nome, quant, preco, vededor_id) VALUES (:nome, :quant, :preco, :vededor_id)";
+        $sql = "INSERT INTO produtos (nome, quant, preco, vendedor_id) VALUES (:nome, :quant, :preco, :vendedor_id)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':nome', $produto->getNome());
         $stmt->bindParam(':quant', $produto->getQuantidade());
         $stmt->bindParam(':preco', $produto->getPreco());
-        $stmt->bindParam(':vededor_id', $produto->getVendedorId());
+        $stmt->bindParam(':vendedor_id', $produto->getVendedorId());
         $stmt->execute();
         return $this->pdo->lastInsertId();
     }
 
     private function atualizar(Produto $produto) {
-        $sql = "UPDATE produtos SET nome = :nome, quant = :quant, preco = :preco, vededor_id = :vededor_id WHERE id = :id";
+        $sql = "UPDATE produtos SET nome = :nome, quant = :quant, preco = :preco, vendedor_id = :vendedor_id WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':nome', $produto->getNome());
         $stmt->bindParam(':quant', $produto->getQuantidade());
         $stmt->bindParam(':preco', $produto->getPreco());
-        $stmt->bindParam(':vededor_id', $produto->getVendedorId());
+        $stmt->bindParam(':vendedor_id', $produto->getVendedorId());
         $stmt->bindParam(':id', $produto->getId());
         $stmt->execute();
         return $stmt->rowCount() > 0;
@@ -119,6 +118,11 @@ class ProdutoDAO {
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':vededor_id', $vendedor_id);
         $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function getAll() {
+        $sql = "SELECT * FROM produtos";
+        $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
