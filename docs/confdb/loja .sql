@@ -32,7 +32,7 @@ CREATE TABLE `produtos` (
   `nome` varchar(15) NOT NULL,
   `quant` int(11) DEFAULT NULL,
   `preco` double NOT NULL,
-  `vededor_id` int(11) NOT NULL
+  `vendedor_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -46,8 +46,8 @@ CREATE TABLE `usuario` (
   `nome` varchar(15) NOT NULL,
   `email` varchar(25) NOT NULL,
   `senha` text NOT NULL,
-  `vededor` tinyint(1) NOT NULL,
-  `vededor_id` int(11) DEFAULT NULL,
+  `vendedor` tinyint(1) NOT NULL,
+  `vendedor_id` int(11) DEFAULT NULL,
   `saldo` double NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -58,7 +58,7 @@ CREATE TABLE `usuario` (
 --
 
 CREATE TABLE `vendedores` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL ,
   `usuario_id` int(11) NOT NULL,
   `produtos` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -73,7 +73,7 @@ CREATE TABLE `vendedores` (
 ALTER TABLE `produtos`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `nome` (`nome`),
-  ADD KEY `vededor_id` (`vededor_id`);
+  ADD KEY `vendedor_id` (`vendedor_id`);
 
 --
 -- Índices de tabela `usuario`
@@ -82,7 +82,9 @@ ALTER TABLE `usuario`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `nome` (`nome`),
   ADD UNIQUE KEY `email` (`email`),
-  ADD KEY `fk_usuario_vendedores` (`vededor_id`);
+  ADD KEY `fk_usuario_vendedores` (`vendedor_id`);
+
+ALTER TABLE `usuario` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Índices de tabela `vendedores`
@@ -90,6 +92,8 @@ ALTER TABLE `usuario`
 ALTER TABLE `vendedores`
   ADD PRIMARY KEY (`id`),
   ADD KEY `usuario_id` (`usuario_id`);
+  
+ALTER TABLE `vendedores` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT para tabelas despejadas
@@ -121,13 +125,13 @@ ALTER TABLE `vendedores`
 -- Restrições para tabelas `produtos`
 --
 ALTER TABLE `produtos`
-  ADD CONSTRAINT `fk_produtos_vendedores` FOREIGN KEY (`vededor_id`) REFERENCES `vendedores` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_produtos_vendedores` FOREIGN KEY (`vendedor_id`) REFERENCES `vendedores` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Restrições para tabelas `usuario`
 --
 ALTER TABLE `usuario`
-  ADD CONSTRAINT `fk_usuario_vendedores` FOREIGN KEY (`vededor_id`) REFERENCES `vendedores` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_usuario_vendedores` FOREIGN KEY (`vendedor_id`) REFERENCES `vendedores` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Restrições para tabelas `vendedores`
