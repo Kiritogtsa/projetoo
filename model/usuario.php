@@ -77,6 +77,7 @@ class UsuarioDAO {
             $session["messagem"]  = $th->getMessage();
         }
     }
+    // arumar as logicas de persit ta tudo errado menos a do produto
     public function persistir(Usuario $usuario) {
         if ($usuario->getId() !== null) {
             return $this->atualizar($usuario);

@@ -30,7 +30,7 @@ if($permicao != "vedendor"){
         <input type="number" id="quantidade" name="quantidade" required><br>
         <label for="preco">Preço:</label><br>
         <input type="text" id="preco" name="preco" required><br>
-        <input type="submit" name="btn_produto" value="novo">
+        <input type="submit" name="btn_produto">
     </form>
 </body>
 </html>

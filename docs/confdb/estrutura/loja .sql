@@ -72,7 +72,7 @@ CREATE TABLE `vendedores` (
 --
 ALTER TABLE `produtos`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `nome` (`nome`),
+  ADD KEY `nome` (`nome`),
   ADD KEY `vendedor_id` (`vendedor_id`);
 
 --

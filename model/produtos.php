@@ -6,12 +6,10 @@ class Produto {
     private $preco;
     private $vendedor_id;
 
-    public function __construct($id = null, $nome, $quantidade, $preco, $vendedor_id) {
+    public function __construct($nome, $quantidade, $preco, $vendedor_id) {
         if (empty($nome) || $quantidade === null || $preco === null || $vendedor_id === null) {
             throw new Exception("Dados insuficientes para criar um produto.");
         }
-
-        $this->id = $id;
         $this->nome = $nome;
         $this->quantidade = $quantidade;
         $this->preco = $preco;
@@ -20,6 +18,9 @@ class Produto {
 
     public function getId() {
         return $this->id;
+    }
+    public function setId($id) {
+        $this->id = $id;
     }
 
     public function getNome() {
@@ -67,10 +68,11 @@ class ProdutoDAO {
     }
 
     public function persistir(Produto $produto) {
-        if ($produto->getId() !== null) {
-            return $this->atualizar($produto);
-        } else {
+        if (!$produto->getId()) {
             return $this->criar($produto);
+            
+        } else {
+            return $this->atualizar($produto);
         }
     }
 
@@ -86,12 +88,11 @@ class ProdutoDAO {
     }
 
     private function atualizar(Produto $produto) {
-        $sql = "UPDATE produtos SET nome = :nome, quant = :quant, preco = :preco, vendedor_id = :vendedor_id WHERE id = :id";
+        $sql = "UPDATE produtos SET nome = :nome, quant = :quant, preco = :preco WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':nome', $produto->getNome());
         $stmt->bindParam(':quant', $produto->getQuantidade());
         $stmt->bindParam(':preco', $produto->getPreco());
-        $stmt->bindParam(':vendedor_id', $produto->getVendedorId());
         $stmt->bindParam(':id', $produto->getId());
         $stmt->execute();
         return $stmt->rowCount() > 0;

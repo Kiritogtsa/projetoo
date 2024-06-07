@@ -2,6 +2,7 @@
 session_start();
 require_once("../model/usuario.php");
 require_once("../model/produtos.php");
+var_dump($_POST);
 if (isset($_POST["btn_cadastrar"])) {
     try {
         echo "entra aqui";
@@ -53,11 +54,15 @@ if (isset($_POST["btn_cadastrar"])) {
         $vendedor_id = filter_var($_POST["vendedor_id"], FILTER_SANITIZE_NUMBER_INT);
 
         // Cria um novo objeto Produto
-        $produto = new Produto(null, $nome, $quantidade, $preco, $vendedor_id);
-
+        $produto = new Produto($nome, $quantidade, $preco, $vendedor_id);
+        if($_POST["produto_id"]){
+            $produto->setId($_POST["produto_id"]);
+        }
         // Cria uma instância da classe ProdutoDAO
         $produtoDAO = new ProdutoDAO();
-
+        var_dump($_POST);
+        echo "\n";
+        var_dump($produto);
         // Chama o método persistir para adicionar o produto ao banco de dados
         $produtoDAO->persistir($produto);
 
@@ -67,7 +72,7 @@ if (isset($_POST["btn_cadastrar"])) {
     } catch (\Throwable $th) {
         // Em caso de erro, redirecione para a página de boas-vindas com uma mensagem de erro
         $_SESSION["error_message"] = "Erro ao adicionar o produto: " . $th->getMessage();
-        header("Location: ../view/welcome.php");
+        //header("Location: ../view/welcome.php");
         exit();
     }
-} 
+}
