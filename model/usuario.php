@@ -79,10 +79,10 @@ class UsuarioDAO {
     }
     // arumar as logicas de persit ta tudo errado menos a do produto
     public function persistir(Usuario $usuario) {
-        if ($usuario->getId() !== null) {
-            return $this->atualizar($usuario);
-        } else {
-            return $this->criar($usuario);
+        if(!$usuario->getId()){
+            $this->criar($usuario);
+        }else{
+            $this->atualizar($usuario);
         }
     }
 
@@ -204,10 +204,10 @@ class vendedorDAO{
             throw new Exception('O usuário associado deve ter um ID');
         }
 
-        if ($vendedor->getID() !== null) {
-            return $this->atualizar($vendedor);
-        } else {
-            return $this->criar($vendedor);
+        if(!$vendedor->getID()){
+            $this->criar($vendedor);
+        }else{
+            $this->atualizar($vendedor);
         }
     }
 
