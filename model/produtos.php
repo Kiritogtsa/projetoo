@@ -62,8 +62,9 @@ class ProdutoDAO {
         try {
             require_once("bd.php");
             $this->pdo = $pdo;
+            echo "Conexão PDO estabelecida com sucesso!" . "<br>"; // Adicionado para depuração
         } catch (\Throwable $th) {
-            $session["messagem"]  = $th->getMessage();
+            echo "Erro ao estabelecer conexão PDO: " . $th->getMessage() . "<br>"; // Adicionado para depuração
         }
     }
 
@@ -97,14 +98,37 @@ class ProdutoDAO {
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
+    public function getProduto($id){
+        require_once("../teste.php");
+        // $sql = "SELECT * FROM produtos where id = :id";
+        // $stmt = $this->pdo->prepare($sql);
+        // $stmt->bindParam(":id", $id);
+        // $stmt->execute();
+        // return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
     public function buscarPorId($id) {
-        $sql = "SELECT * FROM produtos WHERE id = :id";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            require_once("db.php");
+            echo "Valor de ID: $id<br>";
+            $sql = "SELECT * FROM produtos WHERE id = :id";
+            $stmt = $pdo->prepare($sql);
+            echo "Consulta preparada.<br>";
+            $stmt->bindParam(":id", $id);
+            echo "Parâmetro ligado.<br>";
+            $stmt->execute();
+            echo "Consulta executada.<br>";
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo "Resultado obtido:<br>";
+            var_dump($result);
+            return $result;
+        } catch (PDOException $e) {
+            echo "Erro ao buscar produto: " . $e->getMessage();
+            return null;
+        }   
     }
+    
+    
 
     public function excluir($id) {
         $sql = "DELETE FROM produtos WHERE id = :id";

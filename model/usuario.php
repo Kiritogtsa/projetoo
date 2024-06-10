@@ -7,7 +7,7 @@ class Usuario{
     protected $is_vendedor;
     protected $vendedor_id;
     protected $saldo;
-    public function __construct($nome,$email,$senha,$is_vendedor,$vendedor_id=null,$id=null) {
+    public function __construct($nome,$email,$senha,$is_vendedor,$vendedor_id=null,$id=null,$saldo=null) {
         if($nome=="" || $email== "" || $senha==""){
             throw new Exception("nao foi passado um erro");
         }
@@ -18,6 +18,9 @@ class Usuario{
         }
         if ($id !== null) {
             $this->user_id = $id;
+        }
+        if($saldo !=null){
+            $this->saldo = $saldo;
         }
         $this->is_vendedor=$is_vendedor;
         $this->vendedor_id=$vendedor_id;
@@ -143,7 +146,7 @@ class UsuarioDAO {
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
-        return new Usuario($dados["nome"],$dados["email"],$dados["senha"],$dados["vendedor"],$dados["vendedor_id"],$dados["id"]);
+        return new Usuario($dados["nome"],$dados["email"],$dados["senha"],$dados["vendedor"],$dados["vendedor_id"],$dados["id"],$dados["saldo"]);
     }
 
     public function excluir($id) {
