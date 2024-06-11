@@ -2,6 +2,7 @@
 session_start();
 require_once("../model/usuario.php");
 require_once("../model/produtos.php");
+require_once("../model/bd.php");
 var_dump($_POST);
 if (isset($_POST["btn_cadastrar"])) {
     try {
@@ -11,7 +12,7 @@ if (isset($_POST["btn_cadastrar"])) {
         $senha = filter_var($_POST["senha"], FILTER_SANITIZE_STRING);
         $is_vendedor = isset($_POST["is_vendedor"]) ? 1 : 0;
         $usuario = new Usuario($nome, $email, $senha, $is_vendedor);        
-        $usuarioDAO = new UsuarioDAO();
+        $usuarioDAO = new UsuarioDAO($pdo);
         $usuarioDAO->persistir($usuario);
         if($usuario->getIsVendedor()==1){
             $_SESSION["usuario"]=serialize(new vendedor($usuario));
@@ -29,7 +30,7 @@ if (isset($_POST["btn_cadastrar"])) {
     }
 }else if(isset($_POST["btn_login"])) {
     try {
-        $usuarioDAO = new UsuarioDAO();
+        $usuarioDAO = new UsuarioDAO($pdo);
         $pessoa = $usuarioDAO->buscarPorEmail($_POST["email"]);
         if ($pessoa !== null && password_verify($_POST["senha"], $pessoa->getSenha())) {
             if($pessoa->getIsVendedor()==1){
@@ -59,7 +60,7 @@ if (isset($_POST["btn_cadastrar"])) {
             $produto->setId($_POST["produto_id"]);
         }
         // Cria uma instância da classe ProdutoDAO
-        $produtoDAO = new ProdutoDAO();
+        $produtoDAO = new ProdutoDAO($pdo);
         var_dump($_POST);
         echo "\n";
         var_dump($produto);

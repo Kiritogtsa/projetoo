@@ -58,13 +58,11 @@ class Produto {
 class ProdutoDAO {
     private $pdo;
 
-    public function __construct() {
+    public function __construct($pdo) {
         try {
-            require_once("bd.php");
             $this->pdo = $pdo;
-            echo "Conexão PDO estabelecida com sucesso!" . "<br>"; // Adicionado para depuração
         } catch (\Throwable $th) {
-            echo "Erro ao estabelecer conexão PDO: " . $th->getMessage() . "<br>"; // Adicionado para depuração
+            $session["messagem"]  = $th->getMessage();
         }
     }
 
@@ -89,12 +87,19 @@ class ProdutoDAO {
     }
 
     private function atualizar(Produto $produto) {
+        if(!$produto){
+            throw new Exception("Error Processing Request", 1);
+        }
         $sql = "UPDATE produtos SET nome = :nome, quant = :quant, preco = :preco WHERE id = :id";
+        $nome = $produto->getNome();
+        $quantidade = $produto->getQuantidade();
+        $preco = $produto->getPreco();
+        $id = $produto->getId();
         $stmt = $this->pdo->prepare($sql);
-        $stmt->bindParam(':nome', $produto->getNome());
-        $stmt->bindParam(':quant', $produto->getQuantidade());
-        $stmt->bindParam(':preco', $produto->getPreco());
-        $stmt->bindParam(':id', $produto->getId());
+        $stmt->bindParam(':nome', $nome);
+        $stmt->bindParam(':quant', $quantidade);
+        $stmt->bindParam(':preco', $preco);
+        $stmt->bindParam(':id', $id);
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
@@ -109,19 +114,14 @@ class ProdutoDAO {
 
     public function buscarPorId($id) {
         try {
-            require_once("db.php");
-            echo "Valor de ID: $id<br>";
             $sql = "SELECT * FROM produtos WHERE id = :id";
-            $stmt = $pdo->prepare($sql);
-            echo "Consulta preparada.<br>";
+            $stmt = $this->pdo->prepare($sql);
             $stmt->bindParam(":id", $id);
-            echo "Parâmetro ligado.<br>";
             $stmt->execute();
-            echo "Consulta executada.<br>";
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            echo "Resultado obtido:<br>";
-            var_dump($result);
-            return $result;
+            $produto = new Produto($result["nome"],$result["quant"],$result["preco"],$result["vendedor_id"]);
+            $produto->setId($result["id"]);
+            return $produto;
         } catch (PDOException $e) {
             echo "Erro ao buscar produto: " . $e->getMessage();
             return null;

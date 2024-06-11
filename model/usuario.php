@@ -72,9 +72,8 @@ class Usuario{
 }
 class UsuarioDAO {
     private $pdo;
-    public function __construct() {
+    public function __construct($pdo) {
         try {
-            require_once('bd.php');
             $this->pdo = $pdo;
         } catch (\Throwable $th) {
             $session["messagem"]  = $th->getMessage();
@@ -129,13 +128,20 @@ class UsuarioDAO {
     }
 
     private function atualizar(Usuario $usuario) {
-        $sql = "UPDATE usuario SET nome = :nome, email = :email, vendedor = :is_vendedor, vendedor_id = :vendedor_id WHERE id = :id";
+        $sql = "UPDATE usuario SET nome = :nome, email = :email, vendedor = :is_vendedor, vendedor_id = :vendedor_id, saldo = :saldo WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->bindParam(':nome', $usuario->getNome());
-        $stmt->bindParam(':email', $usuario->getEmail());
-        $stmt->bindParam(':is_vendedor', $usuario->getIsVendedor());
-        $stmt->bindParam(':vendedor_id', $usuario->getVendedorId());
-        $stmt->bindParam(':id', $usuario->getId());
+        $nome = $usuario->getNome();
+        $email = $usuario->getEmail();
+        $is_vendedor = $usuario->getIsVendedor();
+        $vendedor_id = $usuario->getVendedorId();
+        $saldo = $usuario->getSaldo();
+        $id = $usuario->getId();
+        $stmt->bindParam(':nome', $nome);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':is_vendedor', $is_vendedor);
+        $stmt->bindParam(':vendedor_id', $vendedor_id);
+        $stmt->bindParam(':saldo', $saldo);
+        $stmt->bindParam(':id', $id);
         $stmt->execute();
         return $usuario;
     }
@@ -146,6 +152,17 @@ class UsuarioDAO {
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+        return new Usuario($dados["nome"],$dados["email"],$dados["senha"],$dados["vendedor"],$dados["vendedor_id"],$dados["id"],$dados["saldo"]);
+    }
+    public function buscarPorId($id) {
+        $sql = "SELECT * FROM usuario WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$dados) {
+            throw new Exception("Usuário não encontrado com o email: ");
+        }
         return new Usuario($dados["nome"],$dados["email"],$dados["senha"],$dados["vendedor"],$dados["vendedor_id"],$dados["id"],$dados["saldo"]);
     }
 
@@ -193,12 +210,11 @@ class vendedor{
 
 class vendedorDAO{
     private $pdo;
-    public function __construct() {
+    public function __construct($pdo) {
         try {
-            require_once('bd.php');
             $this->pdo = $pdo;
         } catch (\Throwable $th) {
-            $session["messagem"]  = $th->getMessage();
+            $_session["messagem"]  = $th->getMessage();
         }
     }
     public function persistir(Vendedor $vendedor) {
@@ -239,6 +255,21 @@ class vendedorDAO{
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function buscarPorId($id) {
+        echo $id; // Para debug, remova após verificar
+        $sql = "SELECT * FROM vendedores WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':id', $id); // Assegure-se de que $id é tratado como inteiro
+        $stmt->execute();
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if (!$dados) {
+            throw new Exception("Vendedor não encontrado com o ID: " . $id);
+        }
+    
+        return $dados['usuario_id']; // Retorna apenas o 'usuario_id'
+    }
+
 
     public function excluir($id) {
         $sql = "DELETE FROM vendedores WHERE id = :id";

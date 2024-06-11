@@ -2,6 +2,7 @@
 session_start();
 require_once("../model/usuario.php");
 require_once("../model/produtos.php");
+require_once("../model/bd.php");
 require_once("../controller/verifylogin.php");
 
 // Recupera os dados do usuário da sessão
@@ -22,7 +23,7 @@ if (isset($_SESSION["messagem"])) {
 echo $debug;
 
 // Recupera os produtos do banco de dados
-$produtoDAO = new ProdutoDAO();
+$produtoDAO = new ProdutoDAO($pdo);
 $produtos = $produtoDAO->getAll();
 ?>
 
