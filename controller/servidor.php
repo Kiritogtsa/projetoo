@@ -7,7 +7,8 @@ require_once("../model/produtos.php"); // Alteração aqui
 require_once("../model/bd.php");
 var_dump($_POST);
 echo "<br>";
-echo "<br>";echo "<br>";
+echo "<br>";
+echo "<br>";
 echo "<br>";
 var_dump($_SESSION);
 if (isset($_POST["btn_cadastrar"])) {
@@ -16,37 +17,39 @@ if (isset($_POST["btn_cadastrar"])) {
         $email = filter_var($_POST["email"], FILTER_SANITIZE_EMAIL);
         $senha = filter_var($_POST["senha"], FILTER_SANITIZE_STRING);
         $is_vendedor = isset($_POST["is_vendedor"]) ? 1 : 0;
-        
-        $usuario = new Usuario($nome, $email, $senha, $is_vendedor);
+
+        $usuario = new Usuario($nome, $email, $senha, null);
         $usuarioDAO = new UsuarioDAO($pdo);
-        $usuarioDAO->persistir($usuario);
+        $usuarioDAO->persistir($usuario, $is_vendedor);
         var_dump($usuario);
-        $_SESSION["usuario"] = $usuario;
-        $_SESSION["permissao"] = $is_vendedor ? "vendedor" : "usuario";
-        
-        // header("Location: ../view/welcome.php");
-        // exit();
+        $_SESSION["usuario"] = serialize($pessoa);
+        $_SESSION["permissao"] = $pessoa->getVendedor() != null ? "vendedor" : "usuario";
+
+        header("Location: ../view/welcome.php");
+        exit();
     } catch (\Throwable $th) {
+        echo $th->getMessage();
         // header("Location: ../view/welcome.php");
         // exit();
         // Tratar o erro, redirecionar ou mostrar mensagem de erro
     }
-} elseif(isset($_POST["btn_login"])) {
+} elseif (isset($_POST["btn_login"])) {
     try {
         $usuarioDAO = new UsuarioDAO($pdo);
         $pessoa = $usuarioDAO->buscarPorEmail($_POST["email"]);
-        var_dump($pessoa);
+        var_dump($pessoa); 
         if ($pessoa !== null && password_verify($_POST["senha"], $pessoa->getSenha())) {
-            $_SESSION["usuario"] = $pessoa;
-            $_SESSION["permissao"] = $pessoa->getVendedor()!=null ? "vendedor" : "usuario";
+            $_SESSION["usuario"] = serialize($pessoa);
+            $_SESSION["permissao"] = $pessoa->getVendedor() != null ? "vendedor" : "usuario";
+            echo "da ok";
             // header("Location: ../view/welcome.php");
             // exit();
-        }        
+        }
     } catch (\Throwable $th) {
         // header("Location: ../view/welcome.php");
         // exit();
     }
-} elseif(isset($_POST["btn_produto"])) {
+} elseif (isset($_POST["btn_produto"])) {
     try {
         $nome = filter_var($_POST["nome"], FILTER_SANITIZE_STRING);
         $quantidade = filter_var($_POST["quantidade"], FILTER_SANITIZE_NUMBER_INT);
@@ -56,7 +59,7 @@ if (isset($_POST["btn_cadastrar"])) {
         // Cria um novo objeto Produto
         $vendedor = $usuarioDAO->buscarPorIdVendedor($vendedor_id); // Alteração aqui
         $produto = new Produto($nome, $quantidade, $preco, $vendedor); // Alteração aqui
-        if($_POST["produto_id"]){
+        if ($_POST["produto_id"]) {
             $produto->setId($_POST["produto_id"]);
         }
         // Cria uma instância da classe ProdutoDAO

@@ -6,7 +6,10 @@ class Produto {
     private $preco;
     private $vendedor;
 
-    public function __construct($nome, $quantidade, $preco, $vendedor = null, $id = null) {
+    public function __construct($nome, $quantidade, $preco, $vendedor, $id = null) {
+        if(!$vendedor){
+            throw new Exception("erro ao acessar o produto");
+        }
         $this->nome = $nome;
         $this->quantidade = $quantidade;
         $this->preco = $preco;
@@ -72,12 +75,12 @@ class ProdutoDAO {
     }
 
     private function criar(Produto $produto) {
-        $sql = "INSERT INTO produtos (nome, quant, preco, usuario_id) VALUES (:nome, :quant, :preco, :usuario_id)";
+        $sql = "INSERT INTO produtos (nome, quant, preco, vendedor_id ) VALUES (:nome, :quant, :preco, :vendedor_id )";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':nome', $produto->getNome());
         $stmt->bindParam(':quant', $produto->getQuantidade());
         $stmt->bindParam(':preco', $produto->getPreco());
-        $stmt->bindParam(':usuario_id', $produto->getVendedor()->getId());
+        $stmt->bindParam(':vendedor_id ', $produto->getVendedor()->getId());
         $stmt->execute();
         $produto->setId($this->pdo->lastInsertId());
         return $produto->getId();
@@ -106,7 +109,9 @@ class ProdutoDAO {
         }
 
         $usuarioDAO = new UsuarioDAO($this->pdo); // Alteração aqui
-        $usuario = $usuarioDAO->buscarPorId($dados["usuario_id"]); // Alteração aqui
+        $vendedorDAO = new VendedorDAO($this->pdo);
+        $vendedor = $vendedorDAO->buscarPorId($dados["vendedor_id "]);
+        $usuario = $usuarioDAO->buscarPorId($vendedor->getUsuarioId()); // Alteração aqui
 
         $produto = new Produto($dados["nome"], $dados["quant"], $dados["preco"], $usuario); // Alteração aqui
         $produto->setId($dados["id"]);
