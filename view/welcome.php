@@ -60,70 +60,83 @@ $produtos = $produtoDAO->getAll();
     </style>
 </head>
 <body>
-    <h1>Bem-vindo</h1>
-    <h3><?php echo htmlspecialchars($mensagem); ?></h3>
-    <p>Abaixo estão alguns links úteis:</p>
-
-    <h2>Produtos Disponíveis:</h2>
-    <div class="product-container" id="product-container">
-        <?php foreach ($produtos as $produto) : ?>
-            <div class="product" data-id="<?php echo htmlspecialchars($produto->getId()); ?>" data-nome="<?php echo htmlspecialchars($produto->getNome()); ?>" data-preco="<?php echo htmlspecialchars($produto->getPreco()); ?>" data-quant="<?php echo htmlspecialchars($produto->getQuantidade()); ?>" data-vendedor="<?php echo htmlspecialchars($produto->getVendedor()->getId()); ?>">
-                <strong><?php echo htmlspecialchars($produto->getNome()); ?></strong> - R$ <?php echo number_format($produto->getPreco(), 2, ',', '.'); ?>
-                <?php if ($produto->getVendedor()->getVendedor()->getId() == $vendedorId) : ?>
-                    <!-- Formulário para editar o produto -->
-                    <button class="edit-button" data-id="<?php echo htmlspecialchars($produto->getId()); ?>">Editar Produto</button>
-                <?php else : ?>
-                    <!-- Formulário para comprar o produto -->
-                    <button class="buy-button" data-id="<?php echo htmlspecialchars($produto->getId()); ?>">Comprar Produto</button>
+    <header>
+        <h1>Bem-vindo</h1>
+        <h3><?php echo htmlspecialchars($mensagem); ?></h3>
+        <nav>
+            <ul>
+                <li><a href="#produtos-disponiveis">Produtos Disponíveis</a></li>
+                <?php if ($permicao == "vendedor") : ?>
+                    <li><a href="./casdratarproduto.php">Criar Produto</a></li>
                 <?php endif; ?>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="produtos-disponiveis">
+            <h2>Produtos Disponíveis</h2>
+            <div class="product-container" id="product-container">
+                <?php foreach ($produtos as $produto) : ?>
+                    <article class="product" data-id="<?php echo htmlspecialchars($produto->getId()); ?>" data-nome="<?php echo htmlspecialchars($produto->getNome()); ?>" data-preco="<?php echo htmlspecialchars($produto->getPreco()); ?>" data-quant="<?php echo htmlspecialchars($produto->getQuantidade()); ?>" data-vendedor="<?php echo htmlspecialchars($produto->getVendedor()->getId()); ?>">
+                        <h3><?php echo htmlspecialchars($produto->getNome()); ?></h3>
+                        <p><strong>Preço:</strong> R$ <?php echo number_format($produto->getPreco(), 2, ',', '.'); ?></p>
+                        <?php if ($produto->getVendedor()->getVendedor()->getId() == $vendedorId) : ?>
+                            <!-- Link para editar o produto -->
+                            <a href="#" class="edit-link" data-id="<?php echo htmlspecialchars($produto->getId()); ?>">Editar Produto</a>
+                        <?php else : ?>
+                            <!-- Link para comprar o produto -->
+                            <a href="#" class="buy-link" data-id="<?php echo htmlspecialchars($produto->getId()); ?>">Comprar Produto</a>
+                        <?php endif; ?>
+                    </article>
+                <?php endforeach; ?>
             </div>
-        <?php endforeach; ?>
-    </div>
+        </section>
 
-    <?php if ($permicao == "vendedor") : ?>
-        <a href="./casdratarproduto.php">Criar Produto</a>
-    <?php endif; ?>
+        <section class="details-container" id="edit-container">
+            <h2>Editar Produto</h2>
+            <form id="edit-form">
+                <input type="hidden" id="edit-produto-id" name="produto_id">
+                <!-- Adicione aqui os campos de edição do produto -->
+            </form>
+        </section>
 
-    <div class="details-container" id="edit-container">
-        <h2>Editar Produto</h2>
-        <form id="edit-form">
-            <input type="hidden" id="edit-produto-id" name="produto_id">
-            <!-- Adicione aqui os campos de edição do produto -->
-        </form>
-    </div>
-
-    <div class="details-container hidden" id="buy-container">
-        <h2>Comprar Produto</h2>
-        <form id="buy-form" action="../controller/gerenciarcompra.php" method="POST">
-            <input type="hidden" id="buy-produto-id" name="produto_id">
-            <!-- Adicione aqui os campos para comprar o produto -->
-        </form>
-    </div>
+        <section class="details-container hidden" id="buy-container">
+            <h2>Comprar Produto</h2>
+            <form id="buy-form" action="../controller/gerenciarcompra.php" method="POST">
+                <input type="hidden" id="buy-produto-id" name="produto_id">
+                <!-- Adicione aqui os campos para comprar o produto -->
+            </form>
+        </section>
+    </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const editContainer = document.getElementById('edit-container');
             const buyContainer = document.getElementById('buy-container');
 
-            const editButtons = document.querySelectorAll('.edit-button');
-            const buyButtons = document.querySelectorAll('.buy-button');
+            const editLinks = document.querySelectorAll('.edit-link');
+            const buyLinks = document.querySelectorAll('.buy-link');
 
-            editButtons.forEach(button => {
-                button.addEventListener('click', function() {
+            editLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
                     const id = this.getAttribute('data-id');
                     document.getElementById('edit-produto-id').value = id;
                     editContainer.classList.remove('hidden');
                     buyContainer.classList.add('hidden');
+                    document.getElementById('product-container').classList.add('hidden');
                 });
             });
 
-            buyButtons.forEach(button => {
-                button.addEventListener('click', function() {
+            buyLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
                     const id = this.getAttribute('data-id');
                     document.getElementById('buy-produto-id').value = id;
-
                     buyContainer.classList.remove('hidden');
                     editContainer.classList.add('hidden');
+                    document.getElementById('product-container').classList.add('hidden');
                 });
             });
         });
