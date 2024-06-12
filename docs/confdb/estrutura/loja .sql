@@ -158,7 +158,7 @@ CREATE TABLE `historico_compras` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 START TRANSACTION;
-
+-- senha = senha123
 -- Criar um usuário que não é vendedor
 INSERT INTO `usuario` (`nome`, `email`, `senha`, `vendedor`) 
 VALUES ('Ana Souza', 'ana@example.com', '$2y$10$5xzAypcdc1dZlxKkpcgQ.uBpkUD2tcnzJkOGV4Au5BrYFSf2dpF/G', FALSE);
