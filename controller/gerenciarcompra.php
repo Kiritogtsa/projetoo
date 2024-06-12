@@ -43,11 +43,12 @@ if (isset($_SESSION["usuario"])) {
             $usuarioDAO->persistir($vendedor);
             $usuarioDAO->adicionarCompra($usuario->getId(),$produto->getId(),$quant);   
             $usuario->setHistoricoCompras($usuarioDAO->buscarHistoricoCompras($usuario->getId()));
-            $_SESSION["usuario"] = serialize($pessoa);
+            $_SESSION["usuario"] = serialize($usuario);
             $_SESSION["mensagem"] = "Compra realizada com sucesso";
+            
             header("Location: ../view/welcome.php");
         } else {
-            echo "Não é possível comprar a quantidade desejada";
+            $_SESSION["mensagem"] = "Não é possível comprar a quantidade desejada";
             header("Location: ../view/welcome.php");
         }
     } catch (Throwable $th) {

@@ -39,9 +39,11 @@ if (isset($_POST["btn_cadastrar"])) {
             exit();
         } else {
             echo "Credenciais incorretas.";
+            header("Location: ../view/welcome.php");
         }
     } catch (\Throwable $th) {
         echo "Erro ao tentar logar: " . $th->getMessage();
+        header("Location: ../view/welcome.php");
     }
 } elseif (isset($_POST["btn_produto"])) {
     try {
