@@ -13,18 +13,16 @@ echo "<br>";
 var_dump($_SESSION);
 if (isset($_POST["btn_cadastrar"])) {
     try {
-        $nome = filter_var($_POST["nome"], FILTER_SANITIZE_STRING);
+        $nome = filter_var($_POST["nome"], FILTER_SANITIZE_SPECIAL_CHARS);
         $email = filter_var($_POST["email"], FILTER_SANITIZE_EMAIL);
-        $senha = filter_var($_POST["senha"], FILTER_SANITIZE_STRING);
+        $senha = filter_var($_POST["senha"], FILTER_SANITIZE_SPECIAL_CHARS);
         $is_vendedor = isset($_POST["is_vendedor"]) ? 1 : 0;
 
         $usuario = new Usuario($nome, $email, $senha, null);
         $usuarioDAO = new UsuarioDAO($pdo);
         $usuarioDAO->persistir($usuario, $is_vendedor);
-        var_dump($usuario);
-        $_SESSION["usuario"] = serialize($pessoa);
-        $_SESSION["permissao"] = $pessoa->getVendedor() != null ? "vendedor" : "usuario";
-
+        $_SESSION["usuario"] = serialize($usuario);
+        $_SESSION["permicao"] = $usuario->getVendedor() != null ? "vendedor" : "usuario";
         header("Location: ../view/welcome.php");
         exit();
     } catch (\Throwable $th) {
@@ -36,18 +34,27 @@ if (isset($_POST["btn_cadastrar"])) {
 } elseif (isset($_POST["btn_login"])) {
     try {
         $usuarioDAO = new UsuarioDAO($pdo);
+        $senha = $_POST["senha"]; // Use senha diretamente
+
+        // Debugging: Verificar senha inserida e usuário buscado
+        echo "Senha fornecida: " . $senha . "<br>";
+
         $pessoa = $usuarioDAO->buscarPorEmail($_POST["email"]);
-        var_dump($pessoa); 
-        if ($pessoa !== null && password_verify($_POST["senha"], $pessoa->getSenha())) {
+        
+        // Debugging: Mostrar informações do usuário retornado
+        print_r($pessoa);
+        echo "<br>";
+
+        if ($pessoa !== null && password_verify($senha, $pessoa->getSenha())) {
             $_SESSION["usuario"] = serialize($pessoa);
-            $_SESSION["permissao"] = $pessoa->getVendedor() != null ? "vendedor" : "usuario";
-            echo "da ok";
-            // header("Location: ../view/welcome.php");
-            // exit();
+            $_SESSION["permicao"] = $pessoa->getVendedor() != null ? "vendedor" : "usuario";
+            header("Location: ../view/welcome.php");
+            exit();
+        } else {
+            echo "Credenciais incorretas.";
         }
     } catch (\Throwable $th) {
-        // header("Location: ../view/welcome.php");
-        // exit();
+        echo "Erro ao tentar logar: " . $th->getMessage();
     }
 } elseif (isset($_POST["btn_produto"])) {
     try {

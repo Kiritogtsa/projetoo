@@ -166,8 +166,20 @@ class UsuarioDAO
             $vendedorDAO = new VendedorDAO($this->pdo);
             $vendedor =  new Vendedor($usuario->getId());
             $vendedor = $vendedorDAO->persistir($vendedor);
+            $usuario->setVendedor($vendedor);
+            $this->salvaridVededor($usuario);
         }
         return $usuario;
+    }
+    private function salvaridVededor(Usuario $user){
+        if(!$user->getVendedor()){
+            throw new Exception("Não foi possível adicionar o ID do vendedor");
+        }
+        $sql = "UPDATE usuario SET vendedor_id = :vendedor_id WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(":vendedor_id", $user->getVendedor()->getId());
+        $stmt->bindParam(":id", $user->getId()); // Este bind estava faltando
+        $stmt->execute();
     }
 
     private function atualizar(Usuario $usuario)
@@ -208,7 +220,7 @@ class UsuarioDAO
         // echo "<br>";
         // var_dump($_SESSION);
 
-        $vendedor = $dados["id"] ? $vendedorDAO->buscarPorUsuarioId($dados["id"]) : null;
+        $vendedor = $dados["vendedor_id"] ? $vendedorDAO->buscarPorUsuarioId($dados["id"]) : null;
 
 
         return new Usuario($dados["nome"], $dados["email"], $dados["senha"], $vendedor, $dados["id"], $dados["saldo"]);

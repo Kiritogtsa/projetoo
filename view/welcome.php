@@ -5,31 +5,29 @@ require_once("../model/produtos.php");
 require_once("../model/bd.php");
 require_once("../controller/verifylogin.php");
 
-// Recupera os dados do usuário da sessão
 $usuario = unserialize($_SESSION["usuario"]);
+$usuarioId = $usuario->getId();
+$vendedorId = $usuario->getVendedor()->getId();
 $permicao = $_SESSION["permicao"];
-
-// Mensagem de boas-vindas personalizada
 $mensagem = "Bem-vindo, ";
-if ($permicao == "vedendor") {
-    $mensagem .= "Vendedor " . $usuario->getUsuario()->getNome() . "!";
+
+if ($permicao == "vendedor") {
+    $mensagem .= "Vendedor " . $usuario->getNome() . "!";
 } else {
     $mensagem .= "Usuário " . $usuario->getNome() . "!";
 }
-$debug = "";
-if (isset($_SESSION["messagem"])) {
-    $debug = $_SESSION["messagem"];
-}
-echo $debug;
 
-// Recupera os produtos do banco de dados
+$debug = "";
+if (isset($_SESSION["mensagem"])) {
+    $debug = $_SESSION["mensagem"];
+}
+
 $produtoDAO = new ProdutoDAO($pdo);
 $produtos = $produtoDAO->getAll();
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -62,22 +60,24 @@ $produtos = $produtoDAO->getAll();
         }
     </style>
 </head>
-
 <body>
     <h1>Bem-vindo</h1>
-    <h3><?php echo $mensagem; ?></h3>
+    <h3><?php echo htmlspecialchars($mensagem); ?></h3>
     <p>Abaixo estão alguns links úteis:</p>
 
     <h2>Produtos Disponíveis:</h2>
     <div class="product-container" id="product-container">
         <?php foreach ($produtos as $produto) : ?>
-            <div class="product" data-id="<?php echo $produto['id']; ?>" data-nome="<?php echo $produto['nome']; ?>" data-preco="<?php echo $produto['preco']; ?>" data-quant="<?php echo $produto['quant']; ?>" data-vendedor="<?php echo $produto['vendedor_id']; ?>">
-                <strong><?php echo $produto['nome']; ?></strong> - R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?>
+            <div class="product" data-id="<?php echo htmlspecialchars($produto->getId()); ?>" data-nome="<?php echo htmlspecialchars($produto->getNome()); ?>" data-preco="<?php echo htmlspecialchars($produto->getPreco()); ?>" data-quant="<?php echo htmlspecialchars($produto->getQuantidade()); ?>" data-vendedor="<?php echo htmlspecialchars($produto->getVendedor()->getId()); ?>">
+                <strong><?php echo htmlspecialchars($produto->getNome()); ?></strong> - R$ <?php echo number_format($produto->getPreco(), 2, ',', '.'); ?>
+                <?php if ($produto->getVendedor()->getId() == $vendedorId) : ?>
+                    <button class="buy-button" data-id="<?php echo htmlspecialchars($produto->getId()); ?>">Comprar</button>
+                <?php endif; ?>
             </div>
         <?php endforeach; ?>
     </div>
 
-    <?php if ($permicao == "vedendor") : ?>
+    <?php if ($permicao == "vendedor") : ?>
         <a href="./casdratarproduto.php">Criar Produto</a>
     <?php endif; ?>
 
@@ -99,17 +99,20 @@ $produtos = $produtoDAO->getAll();
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const products = document.querySelectorAll('.product');
+            const buyButtons = document.querySelectorAll('.buy-button');
+
             products.forEach(product => {
                 product.addEventListener('click', function() {
                     const id = this.getAttribute('data-id');
                     const nome = this.getAttribute('data-nome');
                     const preco = this.getAttribute('data-preco');
                     const quant = this.getAttribute('data-quant');
-                    const vendedorId = this.getAttribute('data-vendedor');
 
                     document.getElementById('produto-id').value = id;
                     document.getElementById('produto-nome-input').value = nome;
                     document.getElementById('produto-preco-input').value = preco;
+                    document.getElementById('produto-nome').innerText = nome;
+                    document.getElementById('produto-preco').innerText = parseFloat(preco).toFixed(2).replace('.', ',');
                     document.getElementById('produto-quant').innerText = quant;
                     document.getElementById('user-quantidade').max = quant;
 
@@ -117,8 +120,16 @@ $produtos = $produtoDAO->getAll();
                     document.getElementById('details-container').style.display = 'block';
                 });
             });
+
+            buyButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    const id = this.getAttribute('data-id');
+                    const productDiv = document.querySelector(`.product[data-id='${id}']`);
+                    productDiv.click();
+                });
+            });
         });
     </script>
 </body>
-
 </html>

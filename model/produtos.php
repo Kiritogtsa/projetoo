@@ -148,6 +148,15 @@ class ProdutoDAO {
     public function getAll() {
         $sql = "SELECT * FROM produtos";
         $stmt = $this->pdo->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $dados =  $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $usuarioDAO = new UsuarioDAO($this->pdo);
+        $produtos = array();
+        foreach ($dados as $dado) {
+            $usuario = $usuarioDAO->buscarPorIdVendedor($dado["vendedor_id"]);
+            $produto = new Produto($dado["nome"], $dado["quant"], $dado["preco"], $usuario); 
+            $produto->setId($dado["id"]);
+            $produtos[] = $produto;
+        }
+        return $produtos;
     }
 }
