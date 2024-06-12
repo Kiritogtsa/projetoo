@@ -1,10 +1,11 @@
 <?php
+require_once("./usuario.php");
 class Produto {
     private $id;
     private $nome;
     private $quantidade;
     private $preco;
-    private $vendedor;
+    private Usuario $vendedor;
 
     public function __construct($nome, $quantidade, $preco, $vendedor, $id = null) {
         if(!$vendedor){

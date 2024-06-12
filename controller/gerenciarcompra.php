@@ -32,7 +32,7 @@ if (isset($_SESSION["usuario"])) {
             $novoSaldoVendedor = $vendedor->getSaldo() + $total;
 
             $usuario->setSaldo($novoSaldoUsuario);
-            $vendedor->getUsuario()->setSaldo($novoSaldoVendedor);
+            $vendedor->setSaldo($novoSaldoVendedor);
 
             // Atualizar quantidade do produto
             $produto->setQuantidade($produto->getQuantidade() - $quant);
@@ -40,7 +40,7 @@ if (isset($_SESSION["usuario"])) {
             // Persistir as mudanças no banco de dados
             $produtoDAO->persistir($produto);
             $usuarioDAO->persistir($usuario);
-            $usuarioDAO->persistir($vendedor->getUsuario());
+            $usuarioDAO->persistir($vendedor);
 
             $_SESSION["mensagem"] = "Compra realizada com sucesso";
             header("Location: ../view/welcome.php");
