@@ -12,7 +12,6 @@ $vendedorId = $usuario->getVendedor() ? $usuario->getVendedor()->getId() : null;
 $historicoCompras = $usuario->getHistoricoCompras($usuario);
 $permicao = $_SESSION["permicao"] ?? 'usuario';
 $mensagem = "Bem-vindo, " . ($permicao == "vendedor" ? "Vendedor " : "Usuário ") . $usuario->getNome() . "!";
-var_dump($usuario);
 // Verifica se há mensagens na sessão
 $debug = $_SESSION["mensagem"] ?? "";
 echo $debug;
