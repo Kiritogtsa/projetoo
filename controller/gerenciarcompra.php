@@ -23,7 +23,6 @@ if (isset($_SESSION["usuario"])) {
         if ($produto->getQuantidade() >= $quant) {
             $vendedor = $produto->getVendedor();
             $total = getvalortotal($quant, $produto->getPreco());
-            echo "chega aqui";
             // Atualizar saldos
 
             $novoSaldoUsuario = $usuario->getSaldo() - $total;
@@ -42,8 +41,9 @@ if (isset($_SESSION["usuario"])) {
             $produtoDAO->persistir($produto);
             $usuarioDAO->persistir($usuario);
             $usuarioDAO->persistir($vendedor);
-            $usuarioDAO->adicionarCompra($usuario->getId(),$produto->getId(),$quant);
+            $usuarioDAO->adicionarCompra($usuario->getId(),$produto->getId(),$quant);   
             $usuario->setHistoricoCompras($usuarioDAO->buscarHistoricoCompras($usuario->getId()));
+            $_SESSION["usuario"] = serialize($pessoa);
             $_SESSION["mensagem"] = "Compra realizada com sucesso";
             header("Location: ../view/welcome.php");
         } else {

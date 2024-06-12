@@ -33,7 +33,6 @@ if (isset($_POST["btn_cadastrar"])) {
         $pessoa = $usuarioDAO->buscarPorEmail($_POST["email"]);
         if ($pessoa !== null && password_verify($senha, $pessoa->getSenha())) {
             $pessoa->setHistoricoCompras($usuarioDAO->buscarHistoricoCompras($pessoa->getId()));
-            var_dump($pessoa);
             $_SESSION["usuario"] = serialize($pessoa);
             $_SESSION["permicao"] = $pessoa->getVendedor() != null ? "vendedor" : "usuario";
             header("Location: ../view/welcome.php");

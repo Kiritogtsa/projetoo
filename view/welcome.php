@@ -115,6 +115,35 @@ $produtos = $produtoDAO->getAll();
         </form>
     </div>
     
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const editContainer = document.getElementById('edit-container');
+            const buyContainer = document.getElementById('buy-container');
+
+            const editButtons = document.querySelectorAll('.edit-button');
+            const buyButtons = document.querySelectorAll('.buy-button');
+
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    document.getElementById('edit-produto-id').value = id;
+                    document.getElementById('edit-nome').value = this.parentElement.getAttribute('data-nome');
+                    document.getElementById('edit-preco').value = this.parentElement.getAttribute('data-preco');
+                    document.getElementById('edit-quantidade').value = this.parentElement.getAttribute('data-quant');
+                    editContainer.classList.remove('hidden');
+                    buyContainer.classList.add('hidden');
+                });
+            });
+
+            buyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    document.getElementById('buy-produto-id').value = id;
+                    buyContainer.classList.remove('hidden');
+                    editContainer.classList.add('hidden');
+                });
+            });
+        });
+    </script>
 </body>
 </html>

@@ -223,7 +223,6 @@ class UsuarioDAO
         // Adicionar a compra ao histórico de compras
         $historicoCompras[] = $produto;
     }
-    var_dump($historicoCompras);
     return $historicoCompras;
 }
 
@@ -231,7 +230,7 @@ class UsuarioDAO
     public function adicionarCompra($usuario_id, $produto_id, $quantidade)
     {
         $sql = "INSERT INTO historico_compras (produto_id, quantidade, usuario_id) VALUES (:produto_id, :quantidade, :usuario_id)";
-        $stmt = $this->pdo->prepare($sql);
+        $stmt = $this->pdo->prepare($sql);   
         $stmt->bindParam(':produto_id', $produto_id);
         $stmt->bindParam(':quantidade', $quantidade);
         $stmt->bindParam(':usuario_id', $usuario_id);
