@@ -48,7 +48,6 @@ $produtos = $produtoDAO->getAll();
         }
 
         .details-container {
-            display: none;
             margin-top: 20px;
             border: 1px solid #ddd;
             padding: 20px;
@@ -70,8 +69,12 @@ $produtos = $produtoDAO->getAll();
         <?php foreach ($produtos as $produto) : ?>
             <div class="product" data-id="<?php echo htmlspecialchars($produto->getId()); ?>" data-nome="<?php echo htmlspecialchars($produto->getNome()); ?>" data-preco="<?php echo htmlspecialchars($produto->getPreco()); ?>" data-quant="<?php echo htmlspecialchars($produto->getQuantidade()); ?>" data-vendedor="<?php echo htmlspecialchars($produto->getVendedor()->getId()); ?>">
                 <strong><?php echo htmlspecialchars($produto->getNome()); ?></strong> - R$ <?php echo number_format($produto->getPreco(), 2, ',', '.'); ?>
-                <?php if ($produto->getVendedor()->getId() == $vendedorId) : ?>
-                    <button class="buy-button" data-id="<?php echo htmlspecialchars($produto->getId()); ?>">Comprar</button>
+                <?php if ($produto->getVendedor()->getVendedor()->getId() == $vendedorId) : ?>
+                    <!-- Formulário para editar o produto -->
+                    <button class="edit-button" data-id="<?php echo htmlspecialchars($produto->getId()); ?>">Editar Produto</button>
+                <?php else : ?>
+                    <!-- Formulário para comprar o produto -->
+                    <button class="buy-button" data-id="<?php echo htmlspecialchars($produto->getId()); ?>">Comprar Produto</button>
                 <?php endif; ?>
             </div>
         <?php endforeach; ?>
@@ -81,52 +84,46 @@ $produtos = $produtoDAO->getAll();
         <a href="./casdratarproduto.php">Criar Produto</a>
     <?php endif; ?>
 
-    <div class="details-container" id="details-container">
-        <h2>Detalhes do Produto</h2>
-        <p><strong>Nome:</strong> <span id="produto-nome"></span></p>
-        <p><strong>Preço:</strong> R$ <span id="produto-preco"></span></p>
-        <p><strong>Quantidade Disponível:</strong> <span id="produto-quant"></span></p>
-        <form id="compra-form" action="../controller/gerenciarcompra.php" method="POST">
-            <input type="hidden" id="produto-id" name="produto_id">
-            <input type="hidden" id="produto-nome-input" name="produto_nome">
-            <input type="hidden" id="produto-preco-input" name="produto_preco">
-            <label for="user-quantidade">Quantidade a comprar:</label>
-            <input type="number" id="user-quantidade" name="user_quantidade" min="1">
-            <input type="submit" value="Comprar Produto">
+    <div class="details-container" id="edit-container">
+        <h2>Editar Produto</h2>
+        <form id="edit-form">
+            <input type="hidden" id="edit-produto-id" name="produto_id">
+            <!-- Adicione aqui os campos de edição do produto -->
+        </form>
+    </div>
+
+    <div class="details-container hidden" id="buy-container">
+        <h2>Comprar Produto</h2>
+        <form id="buy-form" action="../controller/gerenciarcompra.php" method="POST">
+            <input type="hidden" id="buy-produto-id" name="produto_id">
+            <!-- Adicione aqui os campos para comprar o produto -->
         </form>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const products = document.querySelectorAll('.product');
+            const editContainer = document.getElementById('edit-container');
+            const buyContainer = document.getElementById('buy-container');
+
+            const editButtons = document.querySelectorAll('.edit-button');
             const buyButtons = document.querySelectorAll('.buy-button');
 
-            products.forEach(product => {
-                product.addEventListener('click', function() {
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
                     const id = this.getAttribute('data-id');
-                    const nome = this.getAttribute('data-nome');
-                    const preco = this.getAttribute('data-preco');
-                    const quant = this.getAttribute('data-quant');
-
-                    document.getElementById('produto-id').value = id;
-                    document.getElementById('produto-nome-input').value = nome;
-                    document.getElementById('produto-preco-input').value = preco;
-                    document.getElementById('produto-nome').innerText = nome;
-                    document.getElementById('produto-preco').innerText = parseFloat(preco).toFixed(2).replace('.', ',');
-                    document.getElementById('produto-quant').innerText = quant;
-                    document.getElementById('user-quantidade').max = quant;
-
-                    document.getElementById('product-container').style.display = 'none';
-                    document.getElementById('details-container').style.display = 'block';
+                    document.getElementById('edit-produto-id').value = id;
+                    editContainer.classList.remove('hidden');
+                    buyContainer.classList.add('hidden');
                 });
             });
 
             buyButtons.forEach(button => {
-                button.addEventListener('click', function(event) {
-                    event.stopPropagation();
+                button.addEventListener('click', function() {
                     const id = this.getAttribute('data-id');
-                    const productDiv = document.querySelector(`.product[data-id='${id}']`);
-                    productDiv.click();
+                    document.getElementById('buy-produto-id').value = id;
+
+                    buyContainer.classList.remove('hidden');
+                    editContainer.classList.add('hidden');
                 });
             });
         });
