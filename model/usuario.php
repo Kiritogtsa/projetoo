@@ -1,5 +1,5 @@
 <?php
-
+require_once("produtos.php");
 class Usuario
 {
     private $user_id;
@@ -9,6 +9,8 @@ class Usuario
     private $saldo;
 
     private ?Vendedor $vendedor;
+
+    private $historicoCompras;
 
     public function __construct($nome, $email, $senha, $vendedor = null, $id = null, $saldo = 0.0)
     {
@@ -21,8 +23,23 @@ class Usuario
         $this->user_id = $id;
         $this->saldo = $saldo;
         $this->vendedor = $vendedor;
+        $this->historicoCompras = array();
+    }
+    public function getHistoricoCompras()
+    {
+        return $this->historicoCompras;
     }
 
+    public function setHistoricoCompras($historicoCompras)
+    {
+        $this->historicoCompras = $historicoCompras;
+    }
+
+    // Método para adicionar uma compra ao histórico
+    public function adicionarCompra($produto)
+    {
+        $this->historicoCompras[] = $produto;
+    }
     // Getters and Setters
     public function getId()
     {
@@ -153,13 +170,15 @@ class UsuarioDAO
     {
         $sql = "INSERT INTO usuario (nome, email, senha, vendedor, saldo) VALUES (:nome, :email, :senha,:vendedor, :saldo)";
         $stmt = $this->pdo->prepare($sql);
-
-        $stmt->bindParam(':nome', $usuario->getNome());
-        $stmt->bindParam(':email', $usuario->getEmail());
+        $nome = $usuario->getNome();
+        $email = $usuario->getEmail();
+        $saldo = $usuario->getSaldo();
+        $stmt->bindParam(':nome', $nome);
+        $stmt->bindParam(':email', $email);
         $senhaHash = password_hash($usuario->getSenha(), PASSWORD_DEFAULT);
         $stmt->bindParam(':senha', $senhaHash);
         $stmt->bindParam(':vendedor', $is_vendedor);
-        $stmt->bindParam(':saldo', $usuario->getSaldo());
+        $stmt->bindParam(':saldo', $saldo);
         $stmt->execute();
         $usuario->setId($this->pdo->lastInsertId());
         if ($is_vendedor == 1) {
@@ -179,6 +198,43 @@ class UsuarioDAO
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(":vendedor_id", $user->getVendedor()->getId());
         $stmt->bindParam(":id", $user->getId()); // Este bind estava faltando
+        $stmt->execute();
+    }
+    public function buscarHistoricoCompras($id)
+{
+    $sql = "SELECT * FROM historico_compras WHERE usuario_id = :usuario_id";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->bindParam(':usuario_id', $id);
+    $stmt->execute();
+    $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Inicializar um array para armazenar as compras com detalhes do produto
+    $historicoCompras = array();
+
+    // Instanciar o ProdutoDAO
+    $produtoDAO = new ProdutoDAO($this->pdo);
+
+    // Iterar sobre as compras
+    foreach ($compras as $compra) {
+        // Obter os detalhes do produto usando o ProdutoDAO
+        $produto = $produtoDAO->buscarPorId($compra['produto_id']);
+        // Adicionar os detalhes do produto à compra
+        $produto->setQuantidade($compra['quantidade']);
+        $produto->setData($compra["data_compra"]);
+        // Adicionar a compra ao histórico de compras
+        $historicoCompras[] = $produto;
+    }
+    var_dump($historicoCompras);
+    return $historicoCompras;
+}
+
+
+    public function adicionarCompra($usuario_id, $produto_id, $quantidade)
+    {
+        $sql = "INSERT INTO historico_compras (produto_id, quantidade, usuario_id) VALUES (:produto_id, :quantidade, :usuario_id)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':produto_id', $produto_id);
+        $stmt->bindParam(':quantidade', $quantidade);
+        $stmt->bindParam(':usuario_id', $usuario_id);
         $stmt->execute();
     }
 
@@ -217,9 +273,9 @@ class UsuarioDAO
             throw new Exception("Usuário não encontrado com o email: " . $email);
         }
         $vendedorDAO = new VendedorDAO($this->pdo);
-        // echo "<br>";
         // var_dump($_SESSION);
 
+        // echo "<br>";
         $vendedor = $dados["vendedor_id"] ? $vendedorDAO->buscarPorUsuarioId($dados["id"]) : null;
 
 
@@ -228,6 +284,7 @@ class UsuarioDAO
 
     public function buscarPorId($id)
     {
+        echo "<br>".$id;
         $sql = "SELECT * FROM usuario WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':id', $id);
@@ -237,11 +294,14 @@ class UsuarioDAO
         if (!$dados) {
             throw new Exception("Usuário não encontrado com o ID: " . $id);
         }
-
-        $vendedorDAO = new VendedorDAO($this->pdo);
-        $vendedor = $dados["id"] ? $vendedorDAO->buscarPorUsuarioId($dados["id"]) : null;
-
-        return new Usuario($dados["nome"], $dados["email"], $dados["senha"], $vendedor, $dados["id"], $dados["saldo"]);
+        try {
+            $vendedorDAO = new VendedorDAO($this->pdo);
+            $vendedor = $vendedorDAO->buscarPorUsuarioId($dados["id"]);
+        } catch (\Throwable $th) {
+            $vendedor = null;
+        } finally {
+            return new Usuario($dados["nome"], $dados["email"], $dados["senha"], $vendedor, $dados["id"], $dados["saldo"]);
+        }
     }
     public function buscarPorIdVendedor($id)
     {
@@ -284,31 +344,21 @@ class VendedorDAO
     {
         if (!$vendedor->getId()) {
             return $this->criar($vendedor);
-        } else {
-            return $this->atualizar($vendedor);
-        }
+        } 
     }
 
     private function criar(Vendedor $vendedor)
     {
+        $produtos = 0;
         $sql = "INSERT INTO vendedores (usuario_id, produtos) VALUES (:usuario_id, :produtos)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':usuario_id', $vendedor->getUsuarioId()); // Alteração aqui
-        $stmt->bindParam(':produtos', serialize($vendedor->getProdutos()));
+        $stmt->bindParam(':produtos', $produtos);
         $stmt->execute();
         $vendedor->setId($this->pdo->lastInsertId());
         return $vendedor;
     }
 
-    private function atualizar(Vendedor $vendedor)
-    {
-        $sql = "UPDATE vendedores SET produtos = :produtos WHERE id = :id";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindParam(':produtos', serialize($vendedor->getProdutos()));
-        $stmt->bindParam(':id', $vendedor->getId());
-        $stmt->execute();
-        return $vendedor;
-    }
 
     public function buscarPorUsuarioId($usuario_id)
     {

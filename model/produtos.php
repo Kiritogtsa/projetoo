@@ -6,6 +6,7 @@ class Produto {
     private $quantidade;
     private $preco;
     private Usuario $vendedor;
+    private $data;
 
     public function __construct($nome, $quantidade, $preco, $vendedor, $id = null) {
         if(!$vendedor){
@@ -25,6 +26,13 @@ class Produto {
 
     public function setId($id) {
         $this->id = $id;
+    }
+    public function getData() {
+        return $this->data;
+    }
+
+    public function setData($data) {
+        $this->data = $data;
     }
 
     public function getNome() {
@@ -76,12 +84,16 @@ class ProdutoDAO {
     }
 
     private function criar(Produto $produto) {
+        $nome = $produto->getNome();
+        $quantidade = $produto->getQuantidade();
+        $preco = $produto->getPreco();
+        $vendedor = $produto->getVendedor()->getVendedor()->getId();
         $sql = "INSERT INTO produtos (nome, quant, preco, vendedor_id ) VALUES (:nome, :quant, :preco, :vendedor_id )";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->bindParam(':nome', $produto->getNome());
-        $stmt->bindParam(':quant', $produto->getQuantidade());
-        $stmt->bindParam(':preco', $produto->getPreco());
-        $stmt->bindParam(':vendedor_id ', $produto->getVendedor()->getId());
+        $stmt->bindParam(':nome', $nome);
+        $stmt->bindParam(':quant', $quantidade);
+        $stmt->bindParam(':preco', $preco);
+        $stmt->bindParam(':vendedor_id', $vendedor);
         $stmt->execute();
         $produto->setId($this->pdo->lastInsertId());
         return $produto->getId();
@@ -108,10 +120,10 @@ class ProdutoDAO {
         if (!$dados) {
             throw new Exception("Produto não encontrado com o ID: " . $id);
         }
-
+        
         $usuarioDAO = new UsuarioDAO($this->pdo); // Alteração aqui
         $vendedorDAO = new VendedorDAO($this->pdo);
-        $vendedor = $vendedorDAO->buscarPorId($dados["vendedor_id "]);
+        $vendedor = $vendedorDAO->buscarPorId($dados["vendedor_id"]);
         $usuario = $usuarioDAO->buscarPorId($vendedor->getUsuarioId()); // Alteração aqui
 
         $produto = new Produto($dados["nome"], $dados["quant"], $dados["preco"], $usuario); // Alteração aqui
