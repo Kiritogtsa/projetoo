@@ -157,3 +157,33 @@ CREATE TABLE `historico_compras` (
   CONSTRAINT `fk_historico_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+START TRANSACTION;
+
+-- Criar um usuário que não é vendedor
+INSERT INTO `usuario` (`nome`, `email`, `senha`, `vendedor`) 
+VALUES ('Ana Souza', 'ana@example.com', '$2y$10$5xzAypcdc1dZlxKkpcgQ.uBpkUD2tcnzJkOGV4Au5BrYFSf2dpF/G', FALSE);
+
+-- Criar um novo usuário que será vendedor
+INSERT INTO `usuario` (`nome`, `email`, `senha`, `vendedor`) 
+VALUES ('Joao Silva', 'joao@example.com', '$2y$10$f.kJfdvRuAY4pG1ohXWOkuB5EO.LqoY.nty.Rp3W.bsR8OufFkrZS', TRUE);
+
+-- Obter o ID do usuário vendedor recém-criado
+SELECT @user_vendedor_id := `id` FROM `usuario` WHERE `email` = 'joao@example.com';
+
+-- Inserir o vendedor usando o ID do usuário vendedor
+INSERT INTO `vendedores` (`usuario_id`) 
+VALUES (@user_vendedor_id);
+
+-- Obter o ID do vendedor recém-criado
+SELECT @vendedor_id := `id` FROM `vendedores` WHERE `usuario_id` = @user_vendedor_id;
+
+-- Atualizar o usuário vendedor para associar o vendedor_id
+UPDATE `usuario` 
+SET `vendedor_id` = @vendedor_id 
+WHERE `id` = @user_vendedor_id;
+
+-- Criar um novo produto para o vendedor
+INSERT INTO `produtos` (`nome`, `quant`, `preco`, `vendedor_id`) 
+VALUES ('Produto A', 100, 29.99, @vendedor_id);
+
+COMMIT;
